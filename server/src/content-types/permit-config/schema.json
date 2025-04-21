@@ -1,0 +1,40 @@
+{
+  "kind": "singleType",
+  "collectionName": "permit_configs",
+  "info": {
+    "singularName": "permit-config",
+    "pluralName": "permit-configs",
+    "displayName": "Permit.io Configuration"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "permitApiKey": {
+      "type": "string",
+      "required": true,
+      "private": true
+    },
+    "organizationId": {
+      "type": "string",
+      "required": true
+    },
+    "environment": {
+      "type": "enumeration",
+      "enum": ["development", "production"],
+      "default": "development",
+      "required": true
+    },
+    "syncConfig": {
+      "type": "json",
+      "required": true,
+      "default": {
+        "autoSyncUsers": true,
+        "userMapping": {
+          "strapiFields": ["email", "username"],
+          "permitFields": ["email", "key"]
+        }
+      }
+    }
+  }
+}
