@@ -35,8 +35,7 @@
     "@strapi/icons": "^2.0.0-rc.14",
     "axios": "^1.8.1",
     "permitio": "^2.7.2-rc",
-    "react-intl": "^7.1.5",
-    "strapi-permit-auth": "file:.yalc/strapi-permit-auth"
+    "react-intl": "^7.1.5"
   },
   "devDependencies": {
     "@strapi/sdk-plugin": "^5.3.0",
@@ -61,11 +60,11 @@
   },
   "strapi": {
     "kind": "plugin",
-    "name": "strapi-permit-auth",
+    "name": "permit-strapi",
     "displayName": "PermitAuth",
     "description": " Fine-grained authorization plugin for Strapi that integrates with Permit, enabling advanced RBAC and ABAC controls for your content types."
   },
-  "name": "strapi-permit-auth",
+  "name": "permit-strapi",
   "description": " Fine-grained authorization plugin for Strapi that integrates with Permit, enabling advanced RBAC and ABAC controls for your content types.",
   "license": "MIT",
   "repository": {

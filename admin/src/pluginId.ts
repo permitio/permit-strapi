@@ -1,1 +1,1 @@
-export const PLUGIN_ID = 'strapi-permit-auth';
+export const PLUGIN_ID = 'permit-strapi';

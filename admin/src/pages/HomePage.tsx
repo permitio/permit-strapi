@@ -13,9 +13,9 @@ const HomePage = () => {
   useEffect(() => {
     const fetchConfig = async () => {
       try {
-        const { data } = await axios.get('/strapi-permit-auth/config');
-        if (data.success && data.config.pdp && data.config.token) {
-          navigate('/plugins/strapi-permit-auth/dashboard');
+        const response = await axios.get('/permit-strapi/config');
+        if (response.data.success && response.data.config.pdp && response.data.config.hasToken) {
+          navigate('/plugins/permit-strapi/dashboard');
         }
       } catch (error) {
         strapi.log.error('Failed to fetch config in HomePage', error);
@@ -58,7 +58,7 @@ const HomePage = () => {
       </Typography>
 
       <Flex padding={2} gap={4} style={{ marginTop: '2rem' }}>
-        <Button onClick={() => navigate('/plugins/strapi-permit-auth/config')} variant="secondary">
+        <Button onClick={() => navigate('/plugins/permit-strapi/config')} variant="secondary">
           Get Started
         </Button>
         <Link

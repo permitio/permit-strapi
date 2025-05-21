@@ -17,9 +17,9 @@ const ConfigPage = () => {
     const fetchConfig = async () => {
       setLoading(true);
       try {
-        const { data } = await axios.get('/strapi-permit-auth/config');
-        if (data.success && data.config.token && data.config.pdp) {
-          navigate('/plugins/strapi-permit-auth/dashboard');
+        const response = await axios.get('/permit-strapi/config');
+        if (response.data.success && response.data.config.pdp && response.data.config.hasToken) {
+          navigate('/plugins/permit-strapi/dashboard');
           return;
         }
       } catch (err: any) {
@@ -33,45 +33,42 @@ const ConfigPage = () => {
     };
 
     fetchConfig();
-  }, [toggleNotification]);
+  }, [toggleNotification, navigate]);
 
   const handleBack = () => {
-    navigate('/plugins/strapi-permit-auth');
+    navigate('/plugins/permit-strapi');
   };
 
   const handleSave = async () => {
-    if (!config.token || !config.pdp) {
-      setError('API Key and PDP URL are required');
-      toggleNotification({
-        type: 'warning',
-        message: 'API Key and PDP URL are required',
-      });
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-
     try {
-      const { data } = await axios.post('/strapi-permit-auth/config', {
+      setLoading(true);
+      setError(null);
+
+      const response = await axios.post('/permit-strapi/config', {
         token: config.token,
         pdp: config.pdp,
       });
 
-      if (data.success) {
+      if (response.data.success) {
         toggleNotification({
           type: 'success',
           message: 'Configuration saved successfully',
         });
-        navigate('/plugins/strapi-permit-auth/dashboard');
+        navigate('/plugins/permit-strapi/dashboard');
       } else {
-        throw new Error(data.message || 'Failed to save configuration');
+        setError(response.data.message);
+        toggleNotification({
+          type: 'danger',
+          message: 'Failed to save configuration',
+        });
       }
     } catch (err: any) {
-      setError(err.message || 'Error saving configuration');
+      console.error('Error saving configuration:', err);
+      const errorMessage = err.response?.data?.message || 'Failed to save configuration';
+      setError(errorMessage);
       toggleNotification({
-        type: 'warning',
-        message: err.message || 'Error saving configuration',
+        type: 'danger',
+        message: errorMessage,
       });
     } finally {
       setLoading(false);
@@ -81,6 +78,7 @@ const ConfigPage = () => {
   return (
     <Flex
       direction="column"
+      gap={4}
       justifyContent="center"
       alignItems="center"
       style={{ height: '100vh' }}
@@ -94,7 +92,7 @@ const ConfigPage = () => {
           <Field.Label>Permit API Key</Field.Label>
           <Field.Input
             type={showPassword ? 'text' : 'password'}
-            placeholder="Enter your Permit API key"
+            placeholder="permit_key_..."
             value={config.token}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
               setConfig((prev) => ({ ...prev, token: e.target.value }))
@@ -115,7 +113,8 @@ const ConfigPage = () => {
           style={{ width: '100%' }}
           hint={
             <>
-              Cloud PDP supports RBAC only. Use deployed local PDP for ABAC/ReBAC.{' '}
+              Note: The Cloud PDP only supports RBAC policies and has a 1MB data limit. For ABAC or
+              ReBAC policies, or to avoid data size restrictions, use a self-hosted (local) PDP{' '}
               <Link
                 href="https://docs.permit.io/concepts/pdp/overview/"
                 target="_blank"
@@ -130,7 +129,7 @@ const ConfigPage = () => {
           <Field.Label>PDP URL</Field.Label>
           <Field.Input
             type="text"
-            placeholder="Enter your PDP URL"
+            placeholder="http://localhost:7766"
             value={config.pdp}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
               setConfig((prev) => ({ ...prev, pdp: e.target.value }))

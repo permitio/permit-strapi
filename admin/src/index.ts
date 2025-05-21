@@ -10,14 +10,19 @@ export default {
       icon: PluginIcon,
       intlLabel: {
         id: `${PLUGIN_ID}.plugin.name`,
-        defaultMessage: PLUGIN_ID,
+        defaultMessage: 'Permit Authorization',
       },
-      // permissions: [{ action: 'admin::is-super', subject: null }],
       Component: async () => {
         const { App } = await import('./pages/App');
 
         return App;
       },
+      permissions: [
+        {
+          id: 'admin::has-admin-role',
+          action: 'plugin::permit-strapi.access',
+        },
+      ],
     });
 
     app.registerPlugin({
