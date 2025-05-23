@@ -8,7 +8,7 @@ const register = ({ strapi }: { strapi: Core.Strapi }) => {
     pluginName: 'permit-strapi',
   });
 
-  strapi.server.use(strapi.plugin('permit-strapi').middleware('permit-check'));
+  // strapi.server.use(strapi.plugin('permit-strapi').middleware('permit-check'));
 };
 
 export default register;

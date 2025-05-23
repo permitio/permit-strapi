@@ -8,6 +8,15 @@ export interface SyncUserResult {
   permitUser?: any;
 }
 
+export interface SyncUsersResult {
+  success: boolean;
+  message: string;
+  totalUsers: number;
+  syncedCount: number;
+  failedCount: number;
+  results: Array<{ userId: number; success: boolean; message: string }>;
+}
+
 const syncUserService = ({ strapi }: { strapi: Core.Strapi }) => ({
   /**
    * Sync a user to Permit.io
@@ -15,7 +24,10 @@ const syncUserService = ({ strapi }: { strapi: Core.Strapi }) => ({
   async syncUser(userId: number): Promise<SyncUserResult> {
     try {
       // Get Permit client
-      const permitClient = await strapi.plugin('permit-strapi').service('service').getClient();
+      const permitClient = await strapi
+        .plugin('permit-strapi')
+        .service('configService')
+        .getClient();
 
       // Fetch user from Strapi
       const user = await strapi.db.query('plugin::users-permissions.user').findOne({
@@ -96,6 +108,81 @@ const syncUserService = ({ strapi }: { strapi: Core.Strapi }) => ({
         message: `Failed to sync user: ${error instanceof Error ? error.message : String(error)}`,
       };
     }
+  },
+
+  /**
+   * Get all users for manual sync selection
+   */
+  async getUsers() {
+    try {
+      const users = await strapi.db.query('plugin::users-permissions.user').findMany({
+        populate: { role: true },
+        select: ['id', 'username', 'email', 'confirmed', 'blocked', 'createdAt'],
+        orderBy: { createdAt: 'desc' },
+      });
+
+      return {
+        success: true,
+        users: users.map((user) => ({
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          roleName: user.role?.name || 'No Role',
+          confirmed: user.confirmed,
+          blocked: user.blocked,
+          createdAt: user.createdAt,
+        })),
+      };
+    } catch (error) {
+      strapi.log.error('Error fetching users:', error);
+      return {
+        success: false,
+        message: `Failed to fetch users: ${error instanceof Error ? error.message : String(error)}`,
+        users: [],
+      };
+    }
+  },
+
+  /**
+   * Sync multiple users to Permit.io
+   */
+  async syncUsers(userIds: number[]): Promise<SyncUsersResult> {
+    const results = [];
+    let syncedCount = 0;
+    let failedCount = 0;
+
+    for (const userId of userIds) {
+      try {
+        const result = await this.syncUser(userId);
+        results.push({
+          userId,
+          success: result.success,
+          message: result.message,
+        });
+
+        if (result.success) {
+          syncedCount++;
+        } else {
+          failedCount++;
+        }
+      } catch (error) {
+        results.push({
+          userId,
+          success: false,
+          message: `Failed to sync user: ${error instanceof Error ? error.message : String(error)}`,
+        });
+        failedCount++;
+      }
+    }
+
+    return {
+      success: true,
+      message: `Sync completed: ${syncedCount} successful, ${failedCount} failed`,
+      totalUsers: userIds.length,
+      syncedCount,
+      failedCount,
+      results,
+    };
   },
 });
 

@@ -54,7 +54,10 @@ const contentTypeSync = ({ strapi }: { strapi: Core.Strapi }) => ({
   async syncContentType(contentTypeUid: string): Promise<SyncContentTypeResult> {
     try {
       // Get Permit client
-      const permitClient = await strapi.plugin('permit-strapi').service('service').getClient();
+      const permitClient = await strapi
+        .plugin('permit-strapi')
+        .service('configService')
+        .getClient();
 
       // Get content type schema
       const contentType = strapi.contentTypes[contentTypeUid];
@@ -150,7 +153,10 @@ const contentTypeSync = ({ strapi }: { strapi: Core.Strapi }) => ({
   async deleteContentTypeResource(contentTypeUid: string): Promise<SyncContentTypeResult> {
     try {
       // Get Permit client
-      const permitClient = await strapi.plugin('permit-strapi').service('service').getClient();
+      const permitClient = await strapi
+        .plugin('permit-strapi')
+        .service('configService')
+        .getClient();
 
       // Create a resource key from the content type UID
       const contentTypeInfo = contentTypeUid.split('.');

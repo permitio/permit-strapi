@@ -44,7 +44,7 @@ const permitCheck = async (ctx: any, next: () => Promise<void>) => {
 
     console.log(`Checking permission for user ${userKey} to ${action} on ${resourceKey}`);
 
-    const permitClient = await strapi.plugin('permit-strapi').service('service').getClient();
+    const permitClient = await strapi.plugin('permit-strapi').service('configService').getClient();
 
     const permitted = await permitClient.check(userKey, action, resourceKey);
 

@@ -14,7 +14,10 @@ const roleSyncService = ({ strapi }: { strapi: Core.Strapi }) => ({
   async syncRole(roleId: number): Promise<SyncRoleResult> {
     try {
       // Get Permit client
-      const permitClient = await strapi.plugin('permit-strapi').service('service').getClient();
+      const permitClient = await strapi
+        .plugin('permit-strapi')
+        .service('configService')
+        .getClient();
 
       // Fetch role from Strapi
       const role = await strapi.db.query('plugin::users-permissions.role').findOne({
@@ -84,7 +87,7 @@ const roleSyncService = ({ strapi }: { strapi: Core.Strapi }) => ({
   //   async syncRolePermissions(roleId: number): Promise<SyncRoleResult> {
   //     try {
   //       // Get Permit client
-  //       const permitClient = await strapi.plugin('permit-strapi').service('service').getClient();
+  //       const permitClient = await strapi.plugin('permit-strapi').service('configService').getClient();
 
   //       // Fetch role from Strapi with permissions
   //       const role = await strapi.db.query('plugin::users-permissions.role').findOne({

@@ -56,7 +56,10 @@ export default async ({ strapi }: { strapi: Core.Strapi }) => {
 
       if (state && state.permitUserKey) {
         try {
-          const permitClient = await strapi.plugin('permit-strapi').service('service').getClient();
+          const permitClient = await strapi
+            .plugin('permit-strapi')
+            .service('configService')
+            .getClient();
           await permitClient.api.deleteUser(state.permitUserKey);
           strapi.log.info(
             `User ${state.strapiUserId} (${state.permitUserKey}) deleted from Permit.io after deletion from Strapi`
@@ -127,7 +130,10 @@ export default async ({ strapi }: { strapi: Core.Strapi }) => {
 
       if (state && state.permitRoleKey) {
         try {
-          const permitClient = await strapi.plugin('permit-strapi').service('service').getClient();
+          const permitClient = await strapi
+            .plugin('permit-strapi')
+            .service('configService')
+            .getClient();
           await permitClient.api.deleteRole(state.permitRoleKey);
           strapi.log.info(
             `Role ${state.strapiRoleId} (${state.permitRoleKey}) deleted from Permit.io after deletion from Strapi`

@@ -4,6 +4,7 @@ import roleSync from './role-sync';
 import contentTypeSync from './content-type-sync';
 import healthService from './health.service';
 import configService from './config.service';
+import syncStatusService from './sync-status.service';
 
 export default {
   service,
@@ -12,4 +13,5 @@ export default {
   contentTypeSync,
   healthService,
   configService,
+  syncStatusService,
 };
