@@ -1,6 +1,17 @@
 {
-  "version": "0.0.0",
-  "keywords": [],
+  "version": "1.0.0",
+  "keywords": [
+    "strapi",
+    "strapi-plugin",
+    "permit",
+    "permitio",
+    "authorization",
+    "fga",
+    "rbac",
+    "abac",
+    "rebac",
+    "fine-grained-authorization"
+  ],
   "type": "commonjs",
   "exports": {
     "./package.json": "./package.json",
@@ -66,16 +77,16 @@
     "displayName": "Permit Strapi",
     "description": "Fine-grained authorization for Strapi using Permit.io"
   },
-  "name": "permit-strapi",
+  "name": "@permitio/permit-strapi",
   "description": "Fine-grained authorization for Strapi using Permit.io",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com//Taofiqq.git"
+    "url": "https://github.com/permitio/permit-strapi"
   },
   "bugs": {
-    "url": "https://github.com//Taofiqq/issues"
+    "url": "https://github.com/permitio/permit-strapi/issues"
   },
-  "homepage": "https://github.com//Taofiqq#readme",
+  "homepage": "https://github.com/permitio/permit-strapi#readme",
   "author": "Taofiqq <taofiqaiyelabegan45@gmail.com>"
 }
