@@ -32,7 +32,9 @@ const SegButton = styled.button<{ $active: boolean; $variant: 'success' | 'dange
   text-transform: uppercase;
   border: none;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s;
   background: ${({ $active, $variant }) =>
     $active ? ($variant === 'success' ? '#c6f0c2' : '#fce4e4') : 'transparent'};
   color: ${({ $active, $variant }) =>
@@ -42,18 +44,16 @@ const SegButton = styled.button<{ $active: boolean; $variant: 'success' | 'dange
   }
   &:hover {
     background: ${({ $active, $variant }) =>
-      $active
-        ? $variant === 'success'
-          ? '#c6f0c2'
-          : '#fce4e4'
-        : '#f6f6f9'};
+      $active ? ($variant === 'success' ? '#c6f0c2' : '#fce4e4') : '#f6f6f9'};
   }
 `;
 
 const TextLink = styled.a`
   color: inherit;
   text-decoration: underline;
-  &:hover { opacity: 0.8; }
+  &:hover {
+    opacity: 0.8;
+  }
 `;
 
 const DEFAULT_PDP_URL = 'https://cloudpdp.api.permit.io';
@@ -85,7 +85,11 @@ const HomePage = ({ onDisconnect }: HomePageProps) => {
   const [protectedTypes, setProtectedTypes] = useState<Record<string, boolean>>({});
   const [savingResources, setSavingResources] = useState(false);
   const [syncingUsers, setSyncingUsers] = useState(false);
-  const [syncResult, setSyncResult] = useState<{ synced: number; failed: number; total: number } | null>(null);
+  const [syncResult, setSyncResult] = useState<{
+    synced: number;
+    failed: number;
+    total: number;
+  } | null>(null);
   const [updateApiKey, setUpdateApiKey] = useState('');
   const [updatePdpUrl, setUpdatePdpUrl] = useState('');
   const [updateLoading, setUpdateLoading] = useState(false);
@@ -93,12 +97,18 @@ const HomePage = ({ onDisconnect }: HomePageProps) => {
   const [disconnectConfirmed, setDisconnectConfirmed] = useState(false);
 
   // ReBAC state
-  const [rebacConfig, setRebacConfig] = useState<Record<string, { enabled: boolean; creatorRole: string }>>({});
-  const [instanceRoles, setInstanceRoles] = useState<Record<string, Array<{ key: string; name: string }>>>({});
+  const [rebacConfig, setRebacConfig] = useState<
+    Record<string, { enabled: boolean; creatorRole: string }>
+  >({});
+  const [instanceRoles, setInstanceRoles] = useState<
+    Record<string, Array<{ key: string; name: string }>>
+  >({});
   const [savingRebac, setSavingRebac] = useState(false);
   const [savingInstanceRoles, setSavingInstanceRoles] = useState<Record<string, boolean>>({});
   const [syncingInstances, setSyncingInstances] = useState<Record<string, boolean>>({});
-  const [instanceSyncResults, setInstanceSyncResults] = useState<Record<string, { synced: number; failed: number; total: number }>>({});
+  const [instanceSyncResults, setInstanceSyncResults] = useState<
+    Record<string, { synced: number; failed: number; total: number }>
+  >({});
 
   // ABAC state
   const [userFields, setUserFields] = useState<FieldInfo[]>([]);
@@ -136,6 +146,7 @@ const HomePage = ({ onDisconnect }: HomePageProps) => {
       ]);
 
       setContentTypes(ctData.contentTypes);
+      console.log('[permit-strapi] content types fetched:', ctData.contentTypes);
 
       const initial: Record<string, boolean> = {};
       ctData.contentTypes.forEach((ct: ContentType) => {
@@ -218,7 +229,10 @@ const HomePage = ({ onDisconnect }: HomePageProps) => {
     try {
       const { data } = await post('/permit-strapi/sync-users', {});
       setSyncResult(data);
-      toggleNotification({ type: 'success', message: `Synced ${data.synced} of ${data.total} users` });
+      toggleNotification({
+        type: 'success',
+        message: `Synced ${data.synced} of ${data.total} users`,
+      });
     } catch {
       toggleNotification({ type: 'danger', message: 'Failed to sync users' });
     } finally {
@@ -257,7 +271,10 @@ const HomePage = ({ onDisconnect }: HomePageProps) => {
     setSavingUserAttrs(true);
     try {
       await post('/permit-strapi/user-attribute-mappings', { mappings: userAttrMappings });
-      toggleNotification({ type: 'success', message: 'User attribute mappings saved. Resources re-synced.' });
+      toggleNotification({
+        type: 'success',
+        message: 'User attribute mappings saved. Resources re-synced.',
+      });
     } catch {
       toggleNotification({ type: 'danger', message: 'Failed to save user attribute mappings' });
     } finally {
@@ -279,7 +296,10 @@ const HomePage = ({ onDisconnect }: HomePageProps) => {
     setSavingResourceAttrs(true);
     try {
       await post('/permit-strapi/resource-attribute-mappings', { mappings: resourceAttrMappings });
-      toggleNotification({ type: 'success', message: 'Resource attribute mappings saved. Resources re-synced.' });
+      toggleNotification({
+        type: 'success',
+        message: 'Resource attribute mappings saved. Resources re-synced.',
+      });
     } catch {
       toggleNotification({ type: 'danger', message: 'Failed to save resource attribute mappings' });
     } finally {
@@ -366,7 +386,10 @@ const HomePage = ({ onDisconnect }: HomePageProps) => {
       const encodedUid = encodeURIComponent(uid);
       const roles = instanceRoles[uid] || [];
       await post(`/permit-strapi/instance-roles/${encodedUid}`, { roles });
-      toggleNotification({ type: 'success', message: 'Instance roles saved and synced to Permit.io' });
+      toggleNotification({
+        type: 'success',
+        message: 'Instance roles saved and synced to Permit.io',
+      });
     } catch {
       toggleNotification({ type: 'danger', message: 'Failed to save instance roles' });
     } finally {
@@ -380,7 +403,10 @@ const HomePage = ({ onDisconnect }: HomePageProps) => {
       const encodedUid = encodeURIComponent(uid);
       const { data } = await post(`/permit-strapi/sync-instances/${encodedUid}`, {});
       setInstanceSyncResults((prev) => ({ ...prev, [uid]: data }));
-      toggleNotification({ type: 'success', message: `Synced ${data.synced} of ${data.total} instances` });
+      toggleNotification({
+        type: 'success',
+        message: `Synced ${data.synced} of ${data.total} instances`,
+      });
     } catch {
       toggleNotification({ type: 'danger', message: 'Failed to sync instances' });
     } finally {
@@ -394,13 +420,7 @@ const HomePage = ({ onDisconnect }: HomePageProps) => {
   return (
     <Box padding={10}>
       {/* Connection Status Card */}
-      <Box
-        background="neutral0"
-        shadow="tableShadow"
-        hasRadius
-        padding={6}
-        marginBottom={6}
-      >
+      <Box background="neutral0" shadow="tableShadow" hasRadius padding={6} marginBottom={6}>
         {/* Row 1 — Logo + Name + Status */}
         <Flex justifyContent="space-between" alignItems="center" paddingBottom={4}>
           <Flex gap={3} alignItems="center">
@@ -420,18 +440,33 @@ const HomePage = ({ onDisconnect }: HomePageProps) => {
         <Flex justifyContent="space-between" alignItems="center" paddingTop={4}>
           <Flex gap={8}>
             <Flex direction="column" gap={1}>
-              <Typography variant="sigma" textColor="neutral500" style={{ textTransform: 'uppercase', letterSpacing: '0.08em', fontSize: '10px' }}>
+              <Typography
+                variant="sigma"
+                textColor="neutral500"
+                style={{ textTransform: 'uppercase', letterSpacing: '0.08em', fontSize: '10px' }}
+              >
                 API KEY
               </Typography>
               <Typography variant="omega">{config?.apiKey}</Typography>
             </Flex>
             <Flex direction="column" gap={1}>
-              <Typography variant="sigma" textColor="neutral500" style={{ textTransform: 'uppercase', letterSpacing: '0.08em', fontSize: '10px' }}>
+              <Typography
+                variant="sigma"
+                textColor="neutral500"
+                style={{ textTransform: 'uppercase', letterSpacing: '0.08em', fontSize: '10px' }}
+              >
                 PDP URL
               </Typography>
               <Flex gap={1} alignItems="center" style={{ lineHeight: 1 }}>
-                <Typography variant="omega" style={{ lineHeight: 1 }}>{config?.pdpUrl}</Typography>
-                <a href="https://docs.permit.io" target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center' }}>
+                <Typography variant="omega" style={{ lineHeight: 1 }}>
+                  {config?.pdpUrl}
+                </Typography>
+                <a
+                  href="https://docs.permit.io"
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{ display: 'flex', alignItems: 'center' }}
+                >
                   <ExternalLink width="11px" height="11px" fill="neutral400" />
                 </a>
               </Flex>
@@ -454,7 +489,11 @@ const HomePage = ({ onDisconnect }: HomePageProps) => {
                 <Modal.Body>
                   <Box padding={2}>
                     <Flex direction="column" gap={4}>
-                      <Field.Root name="updateApiKey" width="100%" hint="Enter a new Permit.io API key to replace the current one">
+                      <Field.Root
+                        name="updateApiKey"
+                        width="100%"
+                        hint="Enter a new Permit.io API key to replace the current one"
+                      >
                         <Field.Label>New API Key</Field.Label>
                         <Field.Hint />
                         <TextInput
@@ -467,7 +506,7 @@ const HomePage = ({ onDisconnect }: HomePageProps) => {
                         />
                       </Field.Root>
                       <Field.Root name="updatePdpUrl" width="100%">
-                        <Field.Label>PDP URL</Field.Label>
+                        <Field.Label>PDP UR</Field.Label>
                         <TextInput
                           value={updatePdpUrl}
                           onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
@@ -481,9 +520,15 @@ const HomePage = ({ onDisconnect }: HomePageProps) => {
                         padding={3}
                         style={{ background: '#f0f4ff', borderRadius: '4px' }}
                       >
-                        <Information width="14px" height="14px" fill="primary600" style={{ flexShrink: 0, marginTop: '2px' }} />
+                        <Information
+                          width="14px"
+                          height="14px"
+                          fill="primary600"
+                          style={{ flexShrink: 0, marginTop: '2px' }}
+                        />
                         <Typography variant="pi" textColor="primary600">
-                          The Cloud PDP supports <strong>RBAC only</strong>. For ABAC or ReBAC policies, use a{' '}
+                          The Cloud PDP supports <strong>RBAC only</strong>. For ABAC or ReBAC
+                          policies, use a{' '}
                           <TextLink
                             href="https://docs.permit.io/how-to/deploy/deploy-to-production"
                             target="_blank"
@@ -532,8 +577,8 @@ const HomePage = ({ onDisconnect }: HomePageProps) => {
                       Are you sure you want to disconnect from Permit.io?
                     </Typography>
                     <Typography variant="omega" textColor="danger600">
-                      All API requests will immediately stop being checked for authorization.
-                      Your content types will be unprotected until you reconnect.
+                      All API requests will immediately stop being checked for authorization. Your
+                      content types will be unprotected until you reconnect.
                     </Typography>
                     <Checkbox
                       checked={disconnectConfirmed}
@@ -565,27 +610,23 @@ const HomePage = ({ onDisconnect }: HomePageProps) => {
         </Flex>
       </Box>
 
-
       {/* User Sync */}
       <Box background="neutral0" shadow="tableShadow" hasRadius padding={6} marginBottom={6}>
         <Flex justifyContent="space-between" alignItems="center" width="100%">
           <Flex direction="column" gap={1} alignItems="flex-start">
             <Typography variant="delta">User Sync</Typography>
             <Typography variant="omega" textColor="neutral600">
-              Sync all existing Strapi users to Permit.io. New users are synced automatically on registration.
+              Sync all existing Strapi users to Permit.io. New users are synced automatically on
+              registration.
             </Typography>
             {syncResult && (
               <Typography variant="pi" textColor="neutral500">
-                Last sync: {syncResult.synced} synced, {syncResult.failed} failed (total: {syncResult.total})
+                Last sync: {syncResult.synced} synced, {syncResult.failed} failed (total:{' '}
+                {syncResult.total})
               </Typography>
             )}
           </Flex>
-          <Button
-            variant="secondary"
-            size="S"
-            onClick={handleSyncAllUsers}
-            loading={syncingUsers}
-          >
+          <Button variant="secondary" size="S" onClick={handleSyncAllUsers} loading={syncingUsers}>
             Sync All Users
           </Button>
         </Flex>
@@ -666,8 +707,8 @@ const HomePage = ({ onDisconnect }: HomePageProps) => {
         <Flex direction="column" gap={1} paddingBottom={4} alignItems="flex-start">
           <Typography variant="delta">ABAC Attribute Mapping</Typography>
           <Typography variant="omega" textColor="neutral600">
-            Select which fields to pass as attributes for Attribute-Based Access Control.
-            Requires a self-hosted PDP.
+            Select which fields to pass as attributes for Attribute-Based Access Control. Requires a
+            self-hosted PDP.
           </Typography>
         </Flex>
 
@@ -676,14 +717,17 @@ const HomePage = ({ onDisconnect }: HomePageProps) => {
           <Accordion.Item value="user-attributes">
             <Accordion.Header>
               <Accordion.Trigger>
-                <Typography variant="omega" fontWeight="bold">User Attributes</Typography>
+                <Typography variant="omega" fontWeight="bold">
+                  User Attributes
+                </Typography>
               </Accordion.Trigger>
             </Accordion.Header>
             <Accordion.Content>
               <Box padding={4}>
                 {userFields.length === 0 ? (
                   <Typography variant="pi" textColor="neutral500">
-                    No custom user fields found. Add fields to the User content type to use as ABAC attributes.
+                    No custom user fields found. Add fields to the User content type to use as ABAC
+                    attributes.
                   </Typography>
                 ) : (
                   <Flex direction="column" gap={3} alignItems="flex-start">
@@ -696,7 +740,9 @@ const HomePage = ({ onDisconnect }: HomePageProps) => {
                         >
                           <Flex gap={1} alignItems="center">
                             <Typography variant="omega">{field.name}</Typography>
-                            <Typography variant="pi" textColor="neutral400">({field.type})</Typography>
+                            <Typography variant="pi" textColor="neutral400">
+                              ({field.type})
+                            </Typography>
                           </Flex>
                         </Checkbox>
                       ))}
@@ -720,14 +766,17 @@ const HomePage = ({ onDisconnect }: HomePageProps) => {
           <Accordion.Item value="resource-attributes">
             <Accordion.Header>
               <Accordion.Trigger>
-                <Typography variant="omega" fontWeight="bold">Resource Attributes</Typography>
+                <Typography variant="omega" fontWeight="bold">
+                  Resource Attributes
+                </Typography>
               </Accordion.Trigger>
             </Accordion.Header>
             <Accordion.Content>
               <Box padding={4}>
                 {protectedContentTypes.length === 0 ? (
                   <Typography variant="pi" textColor="neutral500">
-                    No protected content types. Enable protection for a content type above to configure resource attributes.
+                    No protected content types. Enable protection for a content type above to
+                    configure resource attributes.
                   </Typography>
                 ) : (
                   <Flex direction="column" gap={4} alignItems="flex-start">
@@ -751,11 +800,15 @@ const HomePage = ({ onDisconnect }: HomePageProps) => {
                                 <Checkbox
                                   key={field.name}
                                   checked={selected.includes(field.name)}
-                                  onCheckedChange={() => toggleResourceAttribute(ct.uid, field.name)}
+                                  onCheckedChange={() =>
+                                    toggleResourceAttribute(ct.uid, field.name)
+                                  }
                                 >
                                   <Flex gap={1} alignItems="center">
                                     <Typography variant="omega">{field.name}</Typography>
-                                    <Typography variant="pi" textColor="neutral400">({field.type})</Typography>
+                                    <Typography variant="pi" textColor="neutral400">
+                                      ({field.type})
+                                    </Typography>
                                   </Flex>
                                 </Checkbox>
                               ))}
@@ -819,9 +872,13 @@ const HomePage = ({ onDisconnect }: HomePageProps) => {
                   <Accordion.Header>
                     <Accordion.Trigger>
                       <Flex gap={3} alignItems="center">
-                        <Typography variant="omega" fontWeight="bold">{ct.displayName}</Typography>
+                        <Typography variant="omega" fontWeight="bold">
+                          {ct.displayName}
+                        </Typography>
                         {ctRebac.enabled && (
-                          <Typography variant="pi" textColor="success600">(ReBAC enabled)</Typography>
+                          <Typography variant="pi" textColor="success600">
+                            (ReBAC enabled)
+                          </Typography>
                         )}
                       </Flex>
                     </Accordion.Trigger>
@@ -829,11 +886,18 @@ const HomePage = ({ onDisconnect }: HomePageProps) => {
                   <Accordion.Content>
                     <Box padding={4}>
                       <Flex direction="column" gap={5} alignItems="flex-start">
-
                         {/* Enable/Disable Toggle */}
                         <Flex alignItems="center" gap={3}>
-                          <Typography variant="omega" fontWeight="bold">ReBAC Mode</Typography>
-                          <Flex style={{ border: '1px solid #dcdce4', borderRadius: '4px', overflow: 'hidden' }}>
+                          <Typography variant="omega" fontWeight="bold">
+                            ReBAC Mode
+                          </Typography>
+                          <Flex
+                            style={{
+                              border: '1px solid #dcdce4',
+                              borderRadius: '4px',
+                              overflow: 'hidden',
+                            }}
+                          >
                             <SegButton
                               $active={!ctRebac.enabled}
                               $variant="danger"
@@ -854,7 +918,11 @@ const HomePage = ({ onDisconnect }: HomePageProps) => {
                         {ctRebac.enabled && (
                           <>
                             {/* Creator Role */}
-                            <Field.Root name={`creator-role-${ct.uid}`} width="300px" hint="Role assigned to the user who creates a record">
+                            <Field.Root
+                              name={`creator-role-${ct.uid}`}
+                              width="300px"
+                              hint="Role assigned to the user who creates a record"
+                            >
                               <Field.Label>Creator Role</Field.Label>
                               <Field.Hint />
                               <TextInput
@@ -870,9 +938,12 @@ const HomePage = ({ onDisconnect }: HomePageProps) => {
 
                             {/* Instance Roles */}
                             <Flex direction="column" gap={3} alignItems="flex-start" width="100%">
-                              <Typography variant="omega" fontWeight="bold">Instance Roles</Typography>
+                              <Typography variant="omega" fontWeight="bold">
+                                Instance Roles
+                              </Typography>
                               <Typography variant="pi" textColor="neutral500">
-                                Define roles that can be assigned to users on specific records (e.g. owner, editor, viewer)
+                                Define roles that can be assigned to users on specific records (e.g.
+                                owner, editor, viewer)
                               </Typography>
 
                               {roles.length > 0 && (
@@ -894,7 +965,12 @@ const HomePage = ({ onDisconnect }: HomePageProps) => {
                                           placeholder="name (e.g. Owner)"
                                           value={role.name}
                                           onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                                            updateInstanceRole(ct.uid, index, 'name', e.target.value)
+                                            updateInstanceRole(
+                                              ct.uid,
+                                              index,
+                                              'name',
+                                              e.target.value
+                                            )
                                           }
                                           aria-label="Role name"
                                         />
@@ -938,13 +1014,17 @@ const HomePage = ({ onDisconnect }: HomePageProps) => {
                             {/* Sync Instances */}
                             <Flex justifyContent="space-between" alignItems="center" width="100%">
                               <Flex direction="column" gap={1} alignItems="flex-start">
-                                <Typography variant="omega" fontWeight="bold">Sync Instances</Typography>
+                                <Typography variant="omega" fontWeight="bold">
+                                  Sync Instances
+                                </Typography>
                                 <Typography variant="pi" textColor="neutral500">
-                                  Bulk sync all existing {ct.displayName} records to Permit.io as resource instances
+                                  Bulk sync all existing {ct.displayName} records to Permit.io as
+                                  resource instances
                                 </Typography>
                                 {syncResult && (
                                   <Typography variant="pi" textColor="neutral400">
-                                    Last sync: {syncResult.synced} synced, {syncResult.failed} failed (total: {syncResult.total})
+                                    Last sync: {syncResult.synced} synced, {syncResult.failed}{' '}
+                                    failed (total: {syncResult.total})
                                   </Typography>
                                 )}
                               </Flex>

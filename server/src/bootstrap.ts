@@ -3,6 +3,7 @@ import { Permit } from 'permitio';
 import { debugLog } from './utils/logger';
 
 const bootstrap = async ({ strapi }: { strapi: Core.Strapi }) => {
+  strapi.log.info('[permit-strapi] bootstrap running - v2');
   const config = await strapi
     .plugin('permit-strapi')
     .service('config')

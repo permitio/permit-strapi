@@ -5,9 +5,14 @@ const DEFAULT_TENANT = 'default';
 
 const usersService = ({ strapi }: { strapi: Core.Strapi }) => ({
   async getUserWithRole(userId: number | string) {
+    const mappings = await strapi
+      .plugin('permit-strapi')
+      .service('config')
+      .getUserAttributeMappings();
+
     return strapi.db.query('plugin::users-permissions.user').findOne({
       where: { id: userId },
-      populate: ['role'],
+      populate: ['role', ...mappings],
     });
   },
 
@@ -22,8 +27,12 @@ const usersService = ({ strapi }: { strapi: Core.Strapi }) => ({
 
     const attributes: Record<string, any> = {};
     for (const field of mappings) {
-      if (user[field] !== undefined && user[field] !== null) {
-        attributes[field] = user[field];
+      const value = user[field];
+      if (value === undefined || value === null) continue;
+      if (typeof value === 'object' && !Array.isArray(value) && value.id !== undefined) {
+        attributes[`${field}Id`] = value.id;
+      } else {
+        attributes[field] = value;
       }
     }
     return attributes;
@@ -70,6 +79,7 @@ const usersService = ({ strapi }: { strapi: Core.Strapi }) => ({
 
     const key = `strapi-${fullUser.id}`;
     const attributes = await this.extractUserAttributes(fullUser);
+    attributes.strapiId = fullUser.id;
 
     try {
       await permit.api.users.sync({
