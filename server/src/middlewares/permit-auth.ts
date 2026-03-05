@@ -10,12 +10,31 @@ const deriveAction = (method: string, hasId: boolean): string | null => {
   return null;
 };
 
+/** Extracts ABAC attributes from an entity, flattening relations to `${field}Id`. */
+const extractAttributes = (entity: any, mappedFields: string[]): Record<string, any> => {
+  const attributes: Record<string, any> = {};
+  for (const field of mappedFields) {
+    const value = entity[field];
+    if (value === undefined || value === null) continue;
+    if (typeof value === 'object' && !Array.isArray(value) && value.id !== undefined) {
+      attributes[`${field}Id`] = value.id;
+    } else {
+      attributes[field] = value;
+    }
+  }
+  return attributes;
+};
+
 /**
  * Global Permit.io enforcement middleware.
  *
  * Intercepts every authenticated /api/ request, resolves the user identity
  * via Strapi's JWT service, derives the resource and action from the URL,
  * and calls permit.check() before passing the request to the controller.
+ *
+ * For list routes (find) with ABAC mappings, the middleware lets the request
+ * through to Strapi, then post-filters the response using permit.bulkCheck()
+ * to remove entities the user is not authorized to see.
  *
  * Fails open: if the Permit.io client is not initialized or the PDP is
  * unreachable, the request passes through without enforcement.
@@ -93,26 +112,95 @@ const permitAuthMiddleware = ({ strapi }: { strapi: Core.Strapi }) => {
       try {
         const fullUser = await strapi.db.query('plugin::users-permissions.user').findOne({
           where: { id: decodedId },
+          populate: userAttrMappings,
         });
         if (fullUser) {
-          const userAttributes: Record<string, any> = {};
-          for (const field of userAttrMappings) {
-            if (fullUser[field] !== undefined && fullUser[field] !== null) {
-              userAttributes[field] = fullUser[field];
-            }
-          }
-          userObj = { key: userId, attributes: userAttributes };
+          const attrs = extractAttributes(fullUser, userAttrMappings);
+          attrs.strapiId = decodedId;
+          userObj = { key: userId, attributes: attrs };
         }
       } catch (err) {
         strapi.log.warn(`[permit-strapi] Failed to fetch user attributes: ${err.message}`);
       }
     }
 
-    // Build resource object.
-    // Single-resource routes always include the instance key (supports RBAC, ABAC, ReBAC).
-    // List routes pass type only (no single resource to evaluate).
     const resourceAttrMappings = await configService.getResourceAttributeMappings();
     const mappedResourceFields = resourceAttrMappings[resourceUid] || [];
+
+    // List routes with ABAC mappings: let Strapi handle the request, then post-filter.
+    if (action === 'find' && mappedResourceFields.length > 0) {
+      await next();
+
+      // Only filter successful JSON responses with a data array
+      if (ctx.status !== 200 || !ctx.body?.data || !Array.isArray(ctx.body.data)) return;
+
+      const entities = ctx.body.data;
+      if (entities.length === 0) return;
+
+      try {
+        // Fetch full entities with populated relations for attribute extraction
+        const documentIds = entities.map((e: any) => e.documentId);
+        const fullEntities = await strapi.db.query(resourceUid).findMany({
+          where: { documentId: { $in: documentIds } },
+          populate: mappedResourceFields,
+        });
+
+        // Strapi 5 returns draft + published rows per entity. Use the first
+        // row per documentId (draft) so relation IDs stay consistent with
+        // single-resource queries used in findOne checks.
+        const entityMap = new Map<string, any>();
+        for (const e of fullEntities) {
+          if (!entityMap.has(e.documentId)) {
+            entityMap.set(e.documentId, e);
+          }
+        }
+
+        // Build bulk check requests
+        const checks = entities.map((entity: any) => {
+          const full = entityMap.get(entity.documentId);
+          const attrs = full ? extractAttributes(full, mappedResourceFields) : {};
+          return {
+            user: userObj,
+            action: 'find',
+            resource: { type: resourceName, key: entity.documentId, attributes: attrs },
+          };
+        });
+
+        debugLog(
+          strapi,
+          `[permit-strapi] bulkCheck: user=${typeof userObj === 'string' ? userObj : userObj.key} action=find resource=${resourceName} count=${checks.length}`
+        );
+
+        const results: boolean[] = await permit.bulkCheck(checks);
+
+        const allowed = entities.filter((_: any, i: number) => results[i]);
+        const denied = entities.length - allowed.length;
+
+        if (denied > 0) {
+          debugLog(
+            strapi,
+            `[permit-strapi] bulkCheck filtered: ${allowed.length} allowed, ${denied} denied out of ${entities.length} ${resourceName}(s)`
+          );
+        }
+
+        ctx.body = {
+          ...ctx.body,
+          data: allowed,
+          meta: {
+            ...ctx.body.meta,
+            pagination: ctx.body.meta?.pagination
+              ? { ...ctx.body.meta.pagination, total: allowed.length }
+              : undefined,
+          },
+        };
+      } catch (err) {
+        strapi.log.error(`[permit-strapi] bulkCheck failed, returning unfiltered: ${err.message}`);
+      }
+
+      return;
+    }
+
+    // Single-resource routes: pre-check with permit.check()
     let resourceObj: any = resourceName;
 
     if (hasId && resourceId) {
@@ -120,15 +208,10 @@ const permitAuthMiddleware = ({ strapi }: { strapi: Core.Strapi }) => {
         try {
           const entity = await strapi.db.query(resourceUid).findOne({
             where: { documentId: resourceId },
+            populate: mappedResourceFields,
           });
           if (entity) {
-            const resourceAttributes: Record<string, any> = {};
-            for (const field of mappedResourceFields) {
-              if (entity[field] !== undefined && entity[field] !== null) {
-                resourceAttributes[field] = entity[field];
-              }
-            }
-            resourceObj = { type: resourceName, key: resourceId, attributes: resourceAttributes };
+            resourceObj = { type: resourceName, key: resourceId, attributes: extractAttributes(entity, mappedResourceFields) };
           } else {
             resourceObj = { type: resourceName, key: resourceId };
           }
@@ -139,8 +222,6 @@ const permitAuthMiddleware = ({ strapi }: { strapi: Core.Strapi }) => {
       } else {
         resourceObj = { type: resourceName, key: resourceId };
       }
-    } else if (mappedResourceFields.length > 0) {
-      resourceObj = { type: resourceName };
     }
 
     debugLog(

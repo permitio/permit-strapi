@@ -37,7 +37,7 @@ Use `http://localhost:7766` as the PDP URL when configuring the plugin.
 ## Installation
 
 ```bash
-npm install permit-strapi
+npm install @permitio/permit-strapi
 ```
 
 After installing, restart your Strapi server. The plugin will appear in the admin sidebar under the Permit.io section.
@@ -78,7 +78,9 @@ To enable ABAC:
 4. Select which fields on each content type to include as resource attributes (e.g. `region`, `confidential`)
 5. Save — the plugin will re-sync the resource schemas to Permit.io
 
-The plugin fetches user and resource attributes at request time and passes them to `permit.check()`. For list endpoints (`GET /api/posts`), only user attributes are passed since there is no single resource to evaluate. For single-resource endpoints (`GET /api/posts/:id`), both user and resource attributes are included.
+The plugin fetches user and resource attributes at request time and passes them to `permit.check()`. For single-resource endpoints (`GET /api/posts/:id`), both user and resource attributes are included in the check. For list endpoints (`GET /api/posts`), the plugin performs a bulk check — it fetches all results, runs `permit.check()` against each one with its resource attributes, and filters out any the user is not allowed to see.
+
+Relation fields are supported in attribute mappings. When a content type has a relation field (e.g. `company`), the plugin flattens it to `companyId` (the related record's ID) for both resource and user attributes. Use the flattened name (e.g. `resource.companyId`, `user.companyId`) when writing conditions in Permit.io.
 
 You configure the actual access rules (user sets, resource sets, condition set rules) in the Permit.io dashboard.
 
@@ -125,8 +127,8 @@ npm run watch:link
 In your Strapi project:
 
 ```bash
-npx yalc add permit-strapi
-npx yalc link permit-strapi
+npx yalc add @permitio/permit-strapi
+npx yalc link @permitio/permit-strapi
 npm install
 nvm use 22
 npm run develop

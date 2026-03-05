@@ -148,7 +148,9 @@ const configController = ({ strapi }: { strapi: Core.Strapi }) => ({
 
   async getContentTypeFields(ctx) {
     const { uid } = ctx.params;
+    strapi.log.info(`[permit-strapi] getContentTypeFields called for: ${uid}`);
     const ct = strapi.contentTypes[uid] as any;
+    strapi.log.info(`[permit-strapi] raw attributes for ${uid}: ${JSON.stringify(ct?.attributes)}`);
 
     if (!ct) {
       return ctx.notFound(`Content type ${uid} not found`);
@@ -160,6 +162,7 @@ const configController = ({ strapi }: { strapi: Core.Strapi }) => ({
       'boolean',
       'date', 'datetime', 'time',
       'json',
+      'relation',
     ];
 
     const fields = Object.entries(ct.attributes || {})
@@ -169,6 +172,7 @@ const configController = ({ strapi }: { strapi: Core.Strapi }) => ({
         type: attr.type,
       }));
 
+    strapi.log.info(`[permit-strapi] fields for ${uid}: ${JSON.stringify(fields)}`);
     ctx.body = { fields };
   },
 
@@ -183,6 +187,7 @@ const configController = ({ strapi }: { strapi: Core.Strapi }) => ({
       'integer', 'biginteger', 'float', 'decimal',
       'boolean',
       'date', 'datetime', 'time',
+      'relation',
     ];
 
     const systemFields = ['password', 'resetPasswordToken', 'confirmationToken', 'provider', 'confirmed', 'blocked'];

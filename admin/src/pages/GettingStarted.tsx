@@ -44,9 +44,9 @@ const steps = [
   },
   {
     number: 2,
-    title: 'Set up your resources and policies',
+    title: 'Assign policies in Permit.io',
     description:
-      'In the Permit.io dashboard, define your resources (e.g. Article, Product) and assign roles and policies.',
+      'Once connected, your Strapi content types and roles sync automatically. Head to the Permit.io dashboard to assign permissions per role.',
     link: 'https://docs.permit.io',
     linkText: 'Read the docs',
   },
@@ -134,12 +134,12 @@ const GettingStarted = ({ onConnect }: GettingStartedProps) => {
         <Flex direction="column" gap={6} paddingTop={4}>
           {steps.map((step) => (
             <Flex key={step.number} gap={4} alignItems="flex-start">
-              <StepNumber justifyContent="center" alignItems="center">
+              <StepNumber justifyContent="center" alignItems="center" style={{ marginTop: '2px', flexShrink: 0 }}>
                 <Typography variant="sigma" textColor="primary600">
                   {step.number}
                 </Typography>
               </StepNumber>
-              <Flex direction="column" gap={1}>
+              <Flex direction="column" gap={1} alignItems="flex-start" style={{ flex: 1 }}>
                 <Typography variant="omega" fontWeight="bold">
                   {step.title}
                 </Typography>

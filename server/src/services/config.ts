@@ -29,6 +29,7 @@ const STRAPI_TO_PERMIT_TYPE: Record<string, string> = {
   datetime: 'string',
   time: 'string',
   json: 'json',
+  relation: 'number',
 };
 
 /** "api::article.article" → "article" */
@@ -107,9 +108,10 @@ const configService = ({ strapi }: { strapi: Core.Strapi }) => ({
       if (!attr) continue;
       const permitType = STRAPI_TO_PERMIT_TYPE[attr.type];
       if (!permitType) continue;
-      schema[field] = {
+      const schemaKey = attr.type === 'relation' ? `${field}Id` : field;
+      schema[schemaKey] = {
         type: permitType,
-        description: `${field} (${attr.type})`,
+        description: `${schemaKey} (${attr.type})`,
       };
     }
     return schema;
